@@ -1,0 +1,6 @@
+.secrets
+__pycache__
+rotated_profile.png
+rotated_profile2.png
+geckodriver
+geckodriver.log
