@@ -3,15 +3,17 @@ import tarfile
 import io
 import os
 from typing import Tuple
-import time
+import time, datetime
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
 
-from generate_picture import generate_todays_pic, OUT_PATH
+from generate_picture import generate_todays_pic, get_rotation_amount, OUT_PATH
 
 WEBDRIVER_URL = "https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz"
 EXPECTED_PIC_NAME = OUT_PATH
+LOGFILE = "rotation.log"
 
 def get_creds() -> Tuple[str,str]:
     """
@@ -43,10 +45,18 @@ def download_webdriver():
     else:
         raise Exception(f"Download failed! Request Code {req.status_code}: {req.text}")
 
-def upload_new_pic(username:str, password:str):
+def upload_new_pic(username:str, password:str) -> bool:
+    """ 
+        Uploads profile picture to github. Returns success
+        :param username: Github Username
+        :param password: Github Password
+        :return: Success
+    """
     fpath = str(os.path.join(os.getcwd(), EXPECTED_PIC_NAME))
-    driver = webdriver.Firefox(executable_path=os.path.join(os.getcwd(),"geckodriver"))
-    
+    options = Options()
+    options.add_argument("--headless")
+    driver = webdriver.Firefox(executable_path=os.path.join(os.getcwd(),"geckodriver"), options=options)
+    success = False  # Whether 
     # login ---------------------------------------------------
     try:
         driver.get("https://github.com/login")
@@ -84,12 +94,14 @@ def upload_new_pic(username:str, password:str):
 
         save_button = driver.find_element_by_xpath('//button[@type="submit"and@name="op"and@value="save"]')
         save_button.click()
-
+        success = True
 
     except Exception as e:
         print(f"Exception --- {type(e)=}: {e}")
     finally:
         driver.close()
+
+    return success
 
 def main():
     if not os.path.exists("geckodriver"):
@@ -97,7 +109,13 @@ def main():
     generate_todays_pic()
 
     creds = get_creds()
-    upload_new_pic(creds[0], creds[1])
+    succeeded = upload_new_pic(creds[0], creds[1])
+
+    with open(LOGFILE, "a") as logfile:
+        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        theta = get_rotation_amount()
+
+        logfile.write(f"{today=}, {theta=}, {succeeded=}\n")
 
 if __name__== "__main__":
     main()
