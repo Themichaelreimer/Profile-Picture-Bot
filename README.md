@@ -19,4 +19,4 @@ Ensure the following files exist:
 |profile.png|Base profile picture image|
 |.secrets|Contains the following on two lines: USERNAME=USERNAME_HERE PASSWORD=PASSWORD_HERE|
 
-Afterwards, run `python3 main.py`.
+Afterwards, run `python3 main.py` and confirm it works. Once it works, schedule this job to run daily somehow (Eg. `cron` )
